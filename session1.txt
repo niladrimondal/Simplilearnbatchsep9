@@ -1,0 +1,80 @@
+Simplilearn Lab:
+Free Lab
+
+Have your own lab environment:  AWS Account 
+
+
+Devops:
+
+
+login feature
+
+signup 
+
+Account 
+
+Agile:
+Developer --> BUild ---> Test --> QA ---> Deliver
+login
+10---------> 13 ----->23 suc Test---> 
+
+4--> 27 days-->13 days --> 40 Days--> successful --> Tester 20days---> 60 days+ 30->90days  QA-> 100days
+
+
+Time  challenging 
+
+1. Waterfall Model 1yr 
+
+2. Agile Method time 
+
+3. agile + Devops(tools)
+
+Developer(10 days)  Source code (reposiotory Github) taxi(jenkins) 
+
+BUild      Build Tools (Maven, Gradle, npm)
+
+Test       Selinium
+
+QA         Sonarqube
+
+Deliver/deploy (aws,azure, onpremise, gcp)
+
+
+AWS LAB:
+
+1. Lauch a Windows VM
+2. Ubuntu VM
+3. Linux
+
+
+Benefit of cloud comuting
+cost
+speed
+scaling 
+performance 
+security
+HA 
+
+
+Data centre
+
+IAAS: infrastructure as a service ec2 instance
+PAAS: Platform as a service AWS LAMDA Azure Webapp (application)
+SAAS: software as a service Gmail Outlook , Microsoft office 365
+
+AMI : Aws machine image
+
+RDP: Remote Desktop Protocol 3389
+ssh: Secure Shell protocol   22
+
+
+
+
+
+
+
+
+
+
+
+
