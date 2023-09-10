@@ -1,0 +1,209 @@
+Auto scaling:
+
+Linux: Opearating System
+
+windows
+
+Mac
+
+Linux Architecture:
+
+Application
+Shell
+Kernel
+Hardware
+
+Kernel can help us:
+
+Resource Allocation
+Process Management
+Security
+Devices
+Memory
+Scheduling
+
+user  Group   others
+---   ---     --- 
+rwx   rwx     rwx
+111   101     000       7 5 0
+101
+011
+000
+
+111: 7 (2^2*1, 2^1*1, 2^0*1) 4 +2+1 =7
+
+1
+0
+
+commands runs:
+ubuntu@ip-172-31-41-148:~/niladri$ history
+    1  clear
+    2  ls
+    3  pwd
+    4  ls
+    5  touch file1
+    6  clear
+    7  ls
+    8  ls -a
+    9  clear
+   10  touch .gitignore
+   11  ls
+   12  ls -la
+   13  ls -al
+   14  clear
+   15  mkdir niladri
+   16  mkdir simplilearn
+   17  ls
+   18  pwd
+   19  ls -la
+   20  clear
+   21  ls
+   22  cd niladri/
+   23  ls
+   24  touch file1insideniladridir
+   25  pwd
+   26  cd ..
+   27  pwd
+   28  cd simplilearn/
+   29  touch filefromsimplilearn
+   30  ls
+   31  clear
+   32  ls
+   33  pwd
+   34  cd
+   35  clear
+   36  sudo su -
+   37  ls
+   38  clear
+   39  sudo su -
+   40  su - niladri
+   41  sudo su - niladri
+   42  ls
+   43  mv file1 file2
+   44  ls
+   45  pwd
+   46  mv file2 simplilearn/
+   47  ls
+   48  pwd
+   49  cd simplilearn/
+   50  ls
+   51  clear
+   52  ls
+   53  rm file2
+   54  ls
+   55  clear
+   56  cd
+   57  pwd
+   58  clear
+   59  whoami
+   60  sudo su -
+   61  sudo su - niladri
+   62  claer
+   63  clear
+   64  ls
+   65  touch .html
+   66  ls -la
+   67  rm .html
+   68  ls -la
+   69  clear
+   70  ls
+   71  rm simplilearn/
+   72  cd simplilearn/
+   73  ls
+   74  cd ..
+   75  ls
+   76  rm -r simplilearn/
+   77  ls
+   78  clear
+   79  cd niladri/
+   80  ls
+   81  ls -la
+   82  sudo su - niladri
+   83  ls
+   84  clear
+   85  ls
+   86  pwd
+   87  ls
+   88  touch file1 file2
+   89  ls
+   90  ls -la
+   91  chown niladri:niladri file1
+   92  sudo chown niladri:niladri file1
+   93  ls -la
+   94  clear
+   95  ls
+   96  cd niladri/
+   97  ls
+   98  ls -la
+   99  ls
+  100  cd niladri/
+  101  ls
+  102  ls -la
+  103  chmod 750 file
+  104  chmod 750 file2
+  105  ls
+  106  clear
+  107  ls -la
+  108  cat file3.sh
+  109  touch file3.sh
+  110  ls
+  111  sh file3.sh
+  112  clear
+  113  ls
+  114  vi file1
+  115  clear
+  116  ls -la
+  117  vi file1
+  118  vi file2
+  119  cat file2
+  120  vi file2
+  121  cat file
+  122  cat file2
+  123  vi file2
+  124  cat file2
+  125  clear
+  126  echo "Niladri"
+  127  clear
+  128  apt-get install docker.io
+  129  clear
+  130  sudo apt update
+  131  clear
+  132  sudo apt install docker.io
+  133  clear
+  134  ls
+  135  clear
+  136  systemctl status docker.service
+  137  clear
+  138  history
+ubuntu@ip-172-31-41-148:~/niladri$
+
+IaaC: AWS cloudformation, Azure Resource Manager Template(bicep), Teraform 
+
+Hybrid: AWS and Azure GCP (Terraform)
+
+
+Application:
+Ui Layout
+Search 
+Payment Gateway
+Menu item
+
+Sprint - 2-4 weeks
+Epic: UI layout
+Scrum Master: User Stories
+Assign the user story to the Dev, Devops , test , qa 
+
+Sprint for 2-4 weeks passed 
+
+Demo Session : Sprint Demo: to Product Owner , Feedback
+
+sum(2,2)
+4
+
+
+Serverless: 
+I am developer, least bother about the environment
+
+Azure function (2min) (3mins)
+
+Azure Webapp
