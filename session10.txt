@@ -1,0 +1,440 @@
+Master componets:
+Kube-api server
+Kube- scheduler
+Kube-control-manager
+etcd 
+
+Worker :
+kubelet
+kube-proxy
+container runtime
+pods
+
+Setup Kubernetes Cluster:
+
+Two ways you can setup k8s cluster
+1. Kubeadm
+2. Minikube
+
+https://computingforgeeks.com/deploy-kubernetes-cluster-on-ubuntu-with-kubeadm/
+we are following Kubeadm approach:
+
+1. 
+sudo apt update && sudo apt -y full-upgrade
+[ -f /var/run/reboot-required ] && sudo reboot -f
+
+2.
+sudo apt -y install curl apt-transport-https
+curl  -fsSL  https://packages.cloud.google.com/apt/doc/apt-key.gpg|sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/kubernetes.gpg
+echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+3. 
+#we are going to run on masternode
+sudo apt update
+sudo apt -y install vim git curl wget kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+
+#we are going to run on Workernode
+sudo apt update
+sudo apt -y install vim git curl wget kubelet kubeadm
+
+4. 
+kubectl version --client && kubeadm version
+
+5.
+sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+
+6.
+sudo swapoff -a
+sudo mount -a
+free -h
+
+7.
+# Enable kernel modules
+sudo modprobe overlay
+sudo modprobe br_netfilter
+
+# Add some settings to sysctl
+sudo tee /etc/sysctl.d/kubernetes.conf<<EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+EOF
+
+# Reload sysctl
+sudo sysctl --system
+
+8.
+Install Container runtime
+Install and Use CRI-O:
+
+# Ensure you load modules
+sudo modprobe overlay
+sudo modprobe br_netfilter
+
+# Set up required sysctl params
+sudo tee /etc/sysctl.d/kubernetes.conf<<EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+EOF
+
+# Reload sysctl
+sudo sysctl --system
+
+# Add Cri-o repo
+sudo su -
+OS="xUbuntu_22.04"
+VERSION=1.28
+echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+echo "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.list
+curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | apt-key add -
+curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | apt-key add -
+
+# Install CRI-O
+sudo apt update
+sudo apt install cri-o cri-o-runc
+
+# Update CRI-O CIDR subnet
+sudo sed -i 's/10.85.0.0/172.24.0.0/g' /etc/cni/net.d/100-crio-bridge.conf
+sudo sed -i 's/10.85.0.0/172.24.0.0/g' /etc/cni/net.d/100-crio-bridge.conflist
+
+# Start and enable Service
+sudo systemctl daemon-reload
+sudo systemctl restart crio
+sudo systemctl enable crio
+sudo systemctl status crio
+
+9.
+Initialize master node: only on master node
+lsmod | grep br_netfilter
+
+sudo systemctl enable kubelet
+
+sudo kubeadm config images pull
+
+# CRI-O
+sudo kubeadm config images pull --cri-socket unix:///var/run/crio/crio.sock
+
+10. Bootstrap without shared endpoint: only on master node
+sudo sysctl -p
+sudo kubeadm init \
+  --pod-network-cidr=172.24.0.0/16 \
+  --cri-socket unix:///var/run/crio/crio.sock
+  
+output:
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Alternatively, if you are the root user, you can run:
+
+  export KUBECONFIG=/etc/kubernetes/admin.conf
+
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 172.31.60.157:6443 --token c0yh4f.k8a9es1z4jjh639v \
+        --discovery-token-ca-cert-hash sha256:cca831efe63323e82d9826c9e4627f0dd2ed5902ee7008816e1ada0756f218c6
+
+11.
+Install network plugin on Master 
+
+curl -O https://raw.githubusercontent.com/projectcalico/calico/v3.26.1/manifests/tigera-operator.yaml
+curl -O https://raw.githubusercontent.com/projectcalico/calico/v3.26.1/manifests/custom-resources.yaml 
+
+kubectl create -f tigera-operator.yaml
+kubectl create -f custom-resources.yaml
+
+# you can create pod with single container
+or you crate pod with multiple container
+++++++++++++++++++++++++++++++++++++++++++
+pods:
+https://kubernetes.io/docs/concepts/workloads/pods/
+
+Replicaset:
+https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+
+Deployment:
+https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+
+Service: 
+https://kubernetes.io/docs/concepts/services-networking/service/
+#########multiple container in a single pod:
+#Now I am going to create my pod
+nano sample.yml
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: multi-container
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: nginx
+    image: nginx:1.10-alpine
+	ports:
+	- containerPort: 80
+  - name: alpine
+    image: alpine:3.5
+	command: ["watch","wget","-qO-","localhost"]
+	
+#create a single container pod
+kubectl run tomcat --image=tomcat:8.0
+#output
+$ kubectl run tomcat --image=tomcat:8.0
+pod/tomcat created
+amrutagosavi76a@ip-172-31-21-114:~$ kubectl get pods
+NAME              READY   STATUS    RESTARTS   AGE
+multi-container   2/2     Running   0          17m
+tomcat            1/1     Running   0          59s
+amrutagosavi76a@ip-172-31-21-114:~$ 
+
+#############Addressbook Application
+
+1. Deployment  release 1 relase 2
+    3 replicas
+	   labels:
+	      app: addressbook
+2. Service addressbook service
+    ipadd:port
+	
+
+
+Create Deployment:
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: addressbook-deployment
+  labels:
+    app: addressbook
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: addressbook
+  template:
+    metadata:
+      labels:
+        app: addressbook
+    spec:
+      containers:
+      - name: addressbook
+        image: niladrimondaldcr/addressbook:1.0
+        ports:
+        - containerPort: 8080
+		
+Create Service:
+apiVersion: v1
+kind: Service
+metadata:
+  name: address-service
+spec:
+  type: NodePort
+  selector:
+    app: addressbook
+  ports:
+      # By default and for convenience, the `targetPort` is set to the same value as the `port` field.
+    - port: 8080
+      targetPort: 8080
+      # Optional field
+      # By default and for convenience, the Kubernetes control plane will allocate a port from a range (default: 30000-32767)
+      nodePort: 30007
+
+Minilube Deployment:
+https://minikube.sigs.k8s.io/docs/start/
++++++++++++++++++++++++++++++++++++++++++
+minikube kubectl -- get pods -A
+   20  alias kubectl="minikube kubectl --"
+   21  kubectl get pods
+   24  kubectl run nginx --image="nginx"
+   25  kubectl get pods
+   26  kubectl get nodes
+   27  kubectl explain pods
+   28  kubectl get pods
+   31  minikube kubectl get pods
+   32  minikube kubectl explain pods
+   
+   37  minikube kubectl create -f pod.yaml
+   38  minikube kubectl create -- -f pod.yaml
+   39  minikube kubectl delete pods nginx
+   40  minikube kubectl create -- -f pod.yaml
+   41  minikube kubectl describe pods nginx
+   42  clearf
+   43  clear
+   44  vi sample.yml
+   45  clear
+   46  minikube kubectl create -- -f sample.yml
+   47  vi sample.yml
+   48  minikube kubectl create -- -f sample.yml
+   49  vi sample.yml
+   50  minikube kubectl get pods
+   51  vi pod.yaml
+   52  minikube kubectl apply  -- -f sample.yml
+   53  minikube kubectl apply  -- -f pod.yaml
+   54  clear
+   55  minikube kubectl get pods
+   56  minikube kubectl describe pods nginx
+   
+minikube kubectl -- get pods -A
+minikube kubectl get ns
+minikube kubectl get nodes
+minikube kubectl create ns niladri
+minikube kubectl create -- -f pod.yaml
+minikube kubectl get pods -- -n niladri -o wide
+
+
+121  alias kubectl="minikube kubectl --"
+  122  kubectl get deployments
+  123  kubectl rollout status deployment/nginx-deployment
+  124  kubectl get rs
+  125  kubectl get pods --show-lables
+  126  kubectl get pods -- --show-lables
+  127  kubectl get pods -- --show-labels
+  128  kubectl get pods --show-labels
+  129  clear
+  130  cat deployment-nginx.yaml
+  131  clear
+  132  ls
+  133  clear
+  Rollout and RollBack
+  134  kubectl set image deployment.v1.apps/nginx-deployment nginx=nginx:1.16.1
+  135  kubectl rollout status deployment/nginx-deployment
+  136  kubectl get deployment
+  137  kubectl get rs
+  138  kubectl describe deployment nginx-deployment
+  143  kubectl set image deployment.v1.apps/nginx-deployment nginx=nginx:1.161
+  144  kubectl rollout status deployment/nginx-deployment
+  145  kubectl get rs
+  146  kubectl rollout status deployment/nginx-deployment
+  147  clear
+  148  kubectl get pods
+  149  kubectl rollout history deployment/nginx-deployment
+  157  kubectl rollout history deployment/nginx-deployment --revision=3
+  158  clear
+  159  kubectl rollout history deployment/nginx-deployment --revision=2
+  160  kubectl rollout history deployment/nginx-deployment --revision=1
+  163  kubectl rollout undo deployment/nginx-deployment
+
+Autoscale: 
+  175  kubectl scale deployment/nginx-deployment --replicas=7
+  176  kubectl get rs
+  177  kubectl autoscale deployment/nginx-deployment --min=4 --max=10 --cpu-percent=80	  
+	  
+Purpose of Monitoring:
+
+Nagios(Logs of the server):
+client server architecture
+https://hub.docker.com/r/manios/nagios
+docker pull manios/nagios
+docker run -d --name nagios -p 0.0.0.0:8081:80 manios/nagios:latest
+
+Ser
+
+ELK:
+E- Elastic Search
+L: LOGSTASH
+K: Kibana
+https://github.com/niladrimondal/ELKExample
+
+Prometheus(Monitoring tool) and Grafana(BI)
+#Prometheus installation
+without Docker:
+wget https://github.com/prometheus/prometheus/releases/download/v2.45.0/prometheus-2.45.0.linux-amd64.tar.gz
+tar -xvf prometheus-2.45.0.linux-amd64.tar.gz
+cd prometheus-2.45.0.linux-amd64/
+./prometheus --config.file=prometheus.yml
+
+prometheus.yml
+
+  - job_name: "Node-exporter"
+
+    static_configs:
+      - targets: ["44.202.80.68:9100"]
+
+  - job_name: "C-advisor"
+
+    static_configs:
+      - targets: ["44.202.80.68:8080"]
+
+With Docker:
+docker run -itd -p 9090:9090 -v /home/ubuntu/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus
+
+#Node exporter installation
+docker run -itd -p 9100:9100 prom/node-exporter
+
++++++++++++++++++++++++++++++
+https://prometheus.io/docs/guides/cadvisor/
+
+#docker-compose.yml 
+#Use docker compose to install Cadvisor
+version: '3.2'
+services:
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+    - 8080:8080
+    volumes:
+    - /:/rootfs:ro
+    - /var/run:/var/run:rw
+    - /sys:/sys:ro
+    - /var/lib/docker/:/var/lib/docker:ro
+    depends_on:
+    - redis
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+    - 6379:6379
+	
+#command
+sudo docker-compose -d up
+
++++++++++++++++++++++++++++++++++++++++++++++++
+https://grafana.com/docs/grafana/latest/setup-grafana/installation/debian/
+sudo apt-get install -y apt-transport-https
+sudo apt-get install -y software-properties-common wget
+sudo wget -q -O /usr/share/keyrings/grafana.key https://apt.grafana.com/gpg.key
+
+
+echo "deb [signed-by=/usr/share/keyrings/grafana.key] https://apt.grafana.com stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
+
+echo "deb [signed-by=/usr/share/keyrings/grafana.key] https://apt.grafana.com beta main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
+
+# Updates the list of available packages
+sudo apt-get update
+
+# Installs the latest OSS release:
+sudo apt-get install grafana
+
+# Installs the latest Enterprise release:
+sudo apt-get install grafana-enterprise
+
+sudo systemctl daemon-reload
+sudo systemctl start grafana-server
+sudo systemctl status grafana-server
+sudo systemctl status grafana-server
+
+
+url: http://3.82.165.59:3000/login
+
++++++++++++++++++++++++++++++++++++++
+You can download the dashboard
+Docker Container
+CPU Utilization Details (Cores) Enway
+
+visualization tool Grafana:
+username : admin
+password: admin
+
+Dynatrace
+
+Cloud Watch (AWS)
+
+Azure monitor (Azure)
